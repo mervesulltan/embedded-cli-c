@@ -1,25 +1,34 @@
 CC      = gcc
 CFLAGS  = -Wall -Wextra -Wpedantic -std=c11 -Iinclude
 
-SRC     = $(wildcard src/*.c)
-OBJ     = $(patsubst src/%.c,build/%.o,$(SRC))
+LIB_SRC = $(wildcard src/*.c)
 BUILD   = build
 
 ifeq ($(OS),Windows_NT)
     MKDIR = if not exist $(BUILD) mkdir $(BUILD)
     RMDIR = if exist $(BUILD) rmdir /s /q $(BUILD)
+    RUN_RB = $(BUILD)\test_ring_buffer.exe
+    RUN_LR = $(BUILD)\test_line_reader.exe
 else
     MKDIR = mkdir -p $(BUILD)
     RMDIR = rm -rf $(BUILD)
+    RUN_RB = ./$(BUILD)/test_ring_buffer.exe
+    RUN_LR = ./$(BUILD)/test_line_reader.exe
 endif
 
-.PHONY: all clean
+HEADERS = $(wildcard include/*.h)
 
-all: $(OBJ)
+.PHONY: all test clean
 
-build/%.o: src/%.c
+all: $(BUILD)/test_ring_buffer.exe $(BUILD)/test_line_reader.exe
+
+$(BUILD)/%.exe: tests/%.c $(LIB_SRC) $(HEADERS)
 	$(MKDIR)
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) $(LIB_SRC) $< -o $@
+
+test: all
+	$(RUN_RB)
+	$(RUN_LR)
 
 clean:
 	$(RMDIR)
